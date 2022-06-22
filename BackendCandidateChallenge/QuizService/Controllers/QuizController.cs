@@ -1,73 +1,74 @@
 ﻿using Dapper;
 using Microsoft.AspNetCore.Mvc;
-using QuizService.Model;
-using QuizService.Model.Domain;
+using Quiz.API.Readmodels;
+using Quiz.Application.Services;
+using Quiz.Domain.Models;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Threading.Tasks;
 
-namespace QuizService.Controllers;
-
+namespace Quiz.API.Controllers;
 [Route("api/quizzes")]
 public class QuizController : Controller
 {
     private readonly IDbConnection _connection;
+    private readonly IQuizService _service;
 
-    public QuizController(IDbConnection connection)
+
+    public QuizController(IDbConnection connection, IQuizService service)
     {
         _connection = connection;
+        _service = service;
     }
 
     // GET api/quizzes
     [HttpGet]
-    public IEnumerable<QuizResponseModel> Get()
+    public async Task<IActionResult> Get()
     {
-        const string sql = "SELECT * FROM Quiz;";
-        var quizzes = _connection.Query<Quiz>(sql);
-        return quizzes.Select(quiz =>
-            new QuizResponseModel
+        try
+        {
+            var quizzes = await _service.Get();
+
+            var quizzesResponse = quizzes.Select(x => new QuizResponseModel
             {
-                Id = quiz.Id,
-                Title = quiz.Title
+                Id = x.Id,
+                Title = x.Title
             });
+
+            return Ok(quizzes);
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound();
+        }
+        catch
+        {
+            return Problem();
+        }
     }
 
     // GET api/quizzes/5
     [HttpGet("{id}")]
-    public object Get(int id)
+    public async Task<IActionResult> Get(int id)
     {
-        const string quizSql = "SELECT * FROM Quiz WHERE Id = @Id;";
         try
         {
-            var quiz = _connection.QuerySingle<Quiz>(quizSql, new { Id = id });
-            if (quiz == null)
-                return NotFound();
-            const string questionsSql = "SELECT * FROM Question WHERE QuizId = @QuizId;";
-            var questions = _connection.Query<Question>(questionsSql, new { QuizId = id });
-            const string answersSql = "SELECT a.Id, a.Text, a.QuestionId FROM Answer a INNER JOIN Question q ON a.QuestionId = q.Id WHERE q.QuizId = @QuizId;";
-            var answers = _connection.Query<Answer>(answersSql, new { QuizId = id })
-                .Aggregate(new Dictionary<int, IList<Answer>>(), (dict, answer) =>
-                {
-                    if (!dict.ContainsKey(answer.QuestionId))
-                        dict.Add(answer.QuestionId, new List<Answer>());
-                    dict[answer.QuestionId].Add(answer);
-                    return dict;
-                });
-            return new QuizResponseModel
+            var quiz = await _service.GetById(id);
+
+            return Ok(new QuizResponseModel
             {
                 Id = quiz.Id,
                 Title = quiz.Title,
-                Questions = questions.Select(question => new QuizResponseModel.QuestionItem
+                Questions = quiz.Questions.Select(question => new QuizResponseModel.QuestionItem
                 {
                     Id = question.Id,
                     Text = question.Text,
-                    Answers = answers.ContainsKey(question.Id)
-                        ? answers[question.Id].Select(answer => new QuizResponseModel.AnswerItem
-                        {
-                            Id = answer.Id,
-                            Text = answer.Text
-                        })
-                        : new QuizResponseModel.AnswerItem[0],
+                    Answers = question.Answers.Select(answer => new QuizResponseModel.AnswerItem
+                    {
+                        Id = answer.Id,
+                        Text = answer.Text
+                    }),
                     CorrectAnswerId = question.CorrectAnswerId
                 }),
                 Links = new Dictionary<string, string>
@@ -75,7 +76,7 @@ public class QuizController : Controller
                 {"self", $"/api/quizzes/{id}"},
                 {"questions", $"/api/quizzes/{id}/questions"}
             }
-            };
+            });
         }
         catch
         {
@@ -97,7 +98,7 @@ public class QuizController : Controller
     public IActionResult Put(int id, [FromBody] QuizUpdateModel value)
     {
         const string sql = "UPDATE Quiz SET Title = @Title WHERE Id = @Id";
-        int rowsUpdated = _connection.Execute(sql, new { Id = id, Title = value.Title });
+        int rowsUpdated = _connection.Execute(sql, new { Id = id, value.Title });
         if (rowsUpdated == 0)
             return NotFound();
         return NoContent();
@@ -122,7 +123,7 @@ public class QuizController : Controller
         const string sql = "INSERT INTO Question (Text, QuizId) VALUES(@Text, @QuizId); SELECT LAST_INSERT_ROWID();";
         try
         {
-            var questionId = _connection.ExecuteScalar(sql, new { Text = value.Text, QuizId = id });
+            var questionId = _connection.ExecuteScalar(sql, new { value.Text, QuizId = id });
             return Created($"/api/quizzes/{id}/questions/{questionId}", null);
         }
         catch
@@ -136,7 +137,7 @@ public class QuizController : Controller
     public IActionResult PutQuestion(int id, int qid, [FromBody] QuestionUpdateModel value)
     {
         const string sql = "UPDATE Question SET Text = @Text, CorrectAnswerId = @CorrectAnswerId WHERE Id = @QuestionId";
-        int rowsUpdated = _connection.Execute(sql, new { QuestionId = qid, Text = value.Text, CorrectAnswerId = value.CorrectAnswerId });
+        int rowsUpdated = _connection.Execute(sql, new { QuestionId = qid, value.Text, value.CorrectAnswerId });
         if (rowsUpdated == 0)
             return NotFound();
         return NoContent();
@@ -158,7 +159,7 @@ public class QuizController : Controller
     public IActionResult PostAnswer(int id, int qid, [FromBody] AnswerCreateModel value)
     {
         const string sql = "INSERT INTO Answer (Text, QuestionId) VALUES(@Text, @QuestionId); SELECT LAST_INSERT_ROWID();";
-        var answerId = _connection.ExecuteScalar(sql, new { Text = value.Text, QuestionId = qid });
+        var answerId = _connection.ExecuteScalar(sql, new { value.Text, QuestionId = qid });
         return Created($"/api/quizzes/{id}/questions/{qid}/answers/{answerId}", null);
     }
 
@@ -167,7 +168,7 @@ public class QuizController : Controller
     public IActionResult PutAnswer(int id, int qid, int aid, [FromBody] AnswerUpdateModel value)
     {
         const string sql = "UPDATE Answer SET Text = @Text WHERE Id = @AnswerId";
-        int rowsUpdated = _connection.Execute(sql, new { AnswerId = qid, Text = value.Text });
+        int rowsUpdated = _connection.Execute(sql, new { AnswerId = qid, value.Text });
         if (rowsUpdated == 0)
             return NotFound();
         return NoContent();

@@ -1,4 +1,4 @@
-namespace QuizService.Model;
+namespace Quiz.API.Readmodels;
 
 public class QuizCreateModel
 {

@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Newtonsoft.Json;
-using QuizService.Model;
+using Quiz.API;
+using Quiz.API.Readmodels;
 using Xunit;
 
 namespace QuizService.Tests;

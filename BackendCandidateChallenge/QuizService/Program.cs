@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 
-namespace QuizService;
+namespace Quiz.API;
 
 public class Program
 {

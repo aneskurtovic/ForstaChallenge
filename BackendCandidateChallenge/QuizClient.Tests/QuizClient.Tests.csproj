@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\QuizClient\QuizClient.csproj" />
+    <ProjectReference Include="..\QuizClient\Quiz.Client.csproj" />
   </ItemGroup>
 
 </Project>
