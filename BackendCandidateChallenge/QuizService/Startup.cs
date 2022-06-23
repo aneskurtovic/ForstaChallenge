@@ -29,8 +29,10 @@ public class Startup
         services.AddMvc();
         services.AddSingleton(InitializeDb());
         services.AddControllers();
+        // Added for easier and faster debugging and testing
         services.AddSwaggerGen();
 
+        // This can be extracted to "Boundaries" project in case more registrations come
         services.AddScoped<IQuizService, QuizService>();
         services.AddScoped<IQuizRepository, QuizRepository>();
         services.AddScoped<IQuestionRepository, QuestionRepository>();
@@ -53,8 +55,10 @@ public class Startup
         });
     }
 
+    // Migration should be standalone executable extracted from webAPI
     private IDbConnection InitializeDb()
     {
+        // Connection String should be extracted to appsetings
         var connection = new SqliteConnection("Data Source=:memory:");
         connection.Open();
 

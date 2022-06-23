@@ -22,25 +22,25 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="Readmodels\AnswerCreateModel.cs">
+    <Compile Update="Models\AnswerCreateModel.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Compile>
-    <Compile Update="Readmodels\AnswerUpdateModel.cs">
+    <Compile Update="Models\AnswerUpdateModel.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Compile>
-    <Compile Update="Readmodels\QuestionCreateModel.cs">
+    <Compile Update="Models\QuestionCreateModel.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Compile>
-    <Compile Update="Readmodels\QuestionUpdateModel.cs">
+    <Compile Update="Models\QuestionUpdateModel.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Compile>
-    <Compile Update="Readmodels\QuizCreateModel.cs">
+    <Compile Update="Models\QuizCreateModel.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Compile>
-    <Compile Update="Readmodels\QuizResponseModel.cs">
+    <Compile Update="Models\QuizResponseModel.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Compile>
-    <Compile Update="Readmodels\QuizUpdateModel.cs">
+    <Compile Update="Models\QuizUpdateModel.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Compile>
   </ItemGroup>

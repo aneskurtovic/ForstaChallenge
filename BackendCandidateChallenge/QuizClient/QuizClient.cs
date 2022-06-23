@@ -6,6 +6,7 @@ using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using Quiz.Client.Model;
 using QuizClient.Tests;
 
 namespace QuizClient;
@@ -97,18 +98,35 @@ public class QuizClient
             new Response<object>(response.StatusCode, null, await ReadErrorAsync(response));
     }
 
-    public async Task<Response<Uri>> PostQuizResponseAsync(QuestionResponse questionResponse, int quizId)
+    public async Task<Response<Uri>> PostQuizResponseAsync(QuizSession quizSession, int quizId)
     {
         var request =
             new HttpRequestMessage(HttpMethod.Post, new Uri(_quizServiceUri, $"/api/quizzes/{quizId}/responses"))
             {
-                Content = new StringContent(JsonConvert.SerializeObject(questionResponse))
+                Content = new StringContent(JsonConvert.SerializeObject(quizSession))
             };
         request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
         var response = await _httpClient.SendAsync(request);
         return response.StatusCode == HttpStatusCode.Created ?
             new Response<Uri>(response.StatusCode, response.Headers.Location) :
             new Response<Uri>(response.StatusCode, null, await ReadErrorAsync(response));
+    }
+
+    public async Task<Response<QuizResult>> Evaluate(int id, QuizSession quizSession, CancellationToken cancellationToken)
+    {
+        var request =
+            new HttpRequestMessage(HttpMethod.Get, new Uri(_quizServiceUri, $"/api/quizzes/{id}/evaluate"))
+            {
+                Content = new StringContent(JsonConvert.SerializeObject(quizSession))
+            };
+
+        request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+
+        var response = await _httpClient.SendAsync(request);
+
+        return response.StatusCode == HttpStatusCode.OK ?
+             new Response<QuizResult>(response.StatusCode, await ReadAndDeserializeAsync<QuizResult>(response)) :
+             new Response<QuizResult>(response.StatusCode, new QuizResult {  Score = 0 }, await ReadErrorAsync(response));
     }
 
     private static async Task<string> ReadErrorAsync(HttpResponseMessage response)

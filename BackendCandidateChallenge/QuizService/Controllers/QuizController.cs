@@ -1,8 +1,9 @@
 ﻿using Dapper;
 using Microsoft.AspNetCore.Mvc;
+using Quiz.API.Models;
 using Quiz.API.Readmodels;
 using Quiz.Application.Services;
-using Quiz.Domain.Models;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -30,6 +31,8 @@ public class QuizController : Controller
         {
             var quizzes = await _service.Get();
 
+            // Implement mapper / automapper for domain models -> API DTO's
+
             var quizzesResponse = quizzes.Select(x => new QuizResponseModel
             {
                 Id = x.Id,
@@ -38,13 +41,9 @@ public class QuizController : Controller
 
             return Ok(quizzes);
         }
-        catch (KeyNotFoundException)
-        {
-            return NotFound();
-        }
         catch
         {
-            return Problem();
+            return NotFound();
         }
     }
 
@@ -182,5 +181,20 @@ public class QuizController : Controller
         const string sql = "DELETE FROM Answer WHERE Id = @AnswerId";
         _connection.ExecuteScalar(sql, new { AnswerId = aid });
         return NoContent();
+    }
+
+    [HttpPost]
+    [Route("{id}/evaluate")]
+    public async Task<IActionResult> Evaluate(int id, [FromBody] EvaluateRequest request)
+    {
+        try
+        {
+            var finalScore = await _service.EvaluateAnswers(id, request.SelectedAnswerIds.ToArray());
+            return Ok(finalScore);
+        }
+        catch (Exception)
+        {
+            return BadRequest();
+        }
     }
 }

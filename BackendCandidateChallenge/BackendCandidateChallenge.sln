@@ -5,7 +5,7 @@ VisualStudioVersion = 17.2.32602.215
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Quiz.API", "QuizService\Quiz.API.csproj", "{6019F42B-A710-4B95-B67C-720C65DD65E6}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "QuizService.Tests", "QuizService.Tests\QuizService.Tests.csproj", "{A5603531-62AB-4578-8204-C67AF4BEF713}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Quiz.API.Tests", "QuizService.Tests\Quiz.API.Tests.csproj", "{A5603531-62AB-4578-8204-C67AF4BEF713}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Quiz.Client", "QuizClient\Quiz.Client.csproj", "{9F6F16B1-B83D-45A9-9F75-675989A68EE6}"
 EndProject

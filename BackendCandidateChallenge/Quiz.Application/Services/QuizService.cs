@@ -26,6 +26,7 @@ namespace Quiz.Application.Services
 
         public async Task<Quiz> GetById(int id)
         {
+            // This can be refactored to be a single call to DB instead of 3 separate calls
             var quiz = await _repository.GetById(id);
 
             var questions = await _questionRepository.GetQuestionsByQuizId(id);
@@ -42,12 +43,6 @@ namespace Quiz.Application.Services
                     Text = x.Text,
                     CorrectAnswerId = x.CorrectAnswerId,
                     Answers = answers.Where(y => y.QuestionId == x.Id)
-                        .Select(y => new Answer
-                        {
-                            Id = y.Id,
-                            Text = y.Text,
-                            QuestionId = y.QuestionId
-                        })
                 })
             };
         }
@@ -64,6 +59,32 @@ namespace Quiz.Application.Services
             var answers = await _answerRepository.GetAnswersByQuizId(quizId);
 
             return answers;
+        }
+
+        public async Task<int> EvaluateAnswers(int quizId, int[] answerIds)
+        {
+            var quiz = await GetById(quizId);
+            var score = 0;
+
+            if (quiz.Questions.Count() < answerIds.Count())
+            {
+                throw new ArgumentException("You cannot have more selected answers than questions in this quizz");
+            };
+
+            for (int i = 0; i < answerIds.Count(); i++)
+            {
+                var question = await _answerRepository.GetById(answerIds[i]);
+
+                if (question == null)
+                    continue;
+
+                var correctAnswer = quiz.Questions.Single(x => x.Id == question.QuestionId).CorrectAnswerId;
+
+                if (correctAnswer == answerIds[i])
+                    score++;
+            }
+
+            return score;
         }
     }
 }

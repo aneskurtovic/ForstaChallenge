@@ -32,7 +32,7 @@ namespace Quiz.SQL.Repositories
 
             if (quiz == null)
                 throw new KeyNotFoundException();
-
+            
             return quiz;
         }
     }

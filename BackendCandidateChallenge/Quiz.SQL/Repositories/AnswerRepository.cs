@@ -20,5 +20,12 @@ namespace Quiz.SQL.Repositories
             var answers = await _connection.QueryAsync<Answer>(answersSql, new { QuizId = quizId });
             return answers;
         }
+
+        public async Task<Answer> GetById(int id)
+        {
+            const string singleAnswerSql = "SELECT * FROM Answer WHERE Id = @Id;";
+            var answer = await _connection.QueryFirstOrDefaultAsync<Answer>(singleAnswerSql, new { Id = id });
+            return answer;
+        }
     }
 }

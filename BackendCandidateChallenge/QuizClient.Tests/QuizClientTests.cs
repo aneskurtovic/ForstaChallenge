@@ -281,10 +281,50 @@ public class QuizClientTests : IClassFixture<QuizServiceApiPact>
 
         var consumer = new QuizClient(_mockProviderServiceBaseUri, Client);
 
-        var result = await consumer.PostQuizResponseAsync(new QuestionResponse(),123);
+        var result = await consumer.PostQuizResponseAsync(new QuizSession(),123);
         Assert.True(string.IsNullOrEmpty(result.ErrorMessage), result.ErrorMessage);
         Assert.Equal(HttpStatusCode.Created, result.StatusCode);
         Assert.NotNull(result.Value);
+
+        _mockProviderService.VerifyInteractions();
+    }
+
+    [Fact]
+    public async Task GivenAnswers_WhenEvaluateQuizIsCalled_ShouldCalculateCorrectResult()
+    {
+        _mockProviderService
+           .Given("User selected both correct answers for some quiz")
+           .UponReceiving("GET Request for evaluating quizz and returning final score")
+           .With(new ProviderServiceRequest
+           {
+               Method = HttpVerb.Get,
+               Path = "/api/quizzes/1/evaluate",
+               Headers = new Dictionary<string, object>
+                {
+                    { "Content-Type", "application/json" }
+                }
+           })
+           .WillRespondWith(new ProviderServiceResponse
+           {
+               Status = 200,
+               Headers = new Dictionary<string, object>
+               {
+                    { "Content-Type", "application/json; charset=utf-8" }
+               },
+               Body = new
+               {
+                   Score = 2
+               }
+           });
+
+        var consumer = new QuizClient(_mockProviderServiceBaseUri, Client);
+        var quizSession = new QuizSession();
+        quizSession.SelectedAnswerIds = new List<int> { 1, 5 };
+
+        var result = await consumer.Evaluate(1, quizSession, CancellationToken.None);
+        Assert.True(string.IsNullOrEmpty(result.ErrorMessage), result.ErrorMessage);
+        Assert.Equal(HttpStatusCode.OK, result.StatusCode);
+        Assert.Equal(2, result.Value.Score);
 
         _mockProviderService.VerifyInteractions();
     }
