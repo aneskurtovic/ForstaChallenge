@@ -8,8 +8,11 @@ using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Quiz.Application.Repositories;
+using Quiz.Application.Services;
+using Quiz.SQL.Repositories;
 
-namespace QuizService;
+namespace Quiz.API;
 
 public class Startup
 {
@@ -26,6 +29,14 @@ public class Startup
         services.AddMvc();
         services.AddSingleton(InitializeDb());
         services.AddControllers();
+        // Added for easier and faster debugging and testing
+        services.AddSwaggerGen();
+
+        // This can be extracted to "Boundaries" project in case more registrations come
+        services.AddScoped<IQuizService, QuizService>();
+        services.AddScoped<IQuizRepository, QuizRepository>();
+        services.AddScoped<IQuestionRepository, QuestionRepository>();
+        services.AddScoped<IAnswerRepository, AnswerRepository>();
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -34,6 +45,8 @@ public class Startup
         if (env.IsDevelopment())
         {
             app.UseDeveloperExceptionPage();
+            app.UseSwagger();
+            app.UseSwaggerUI();
         }
         app.UseRouting();
         app.UseEndpoints(endpoints =>
@@ -42,8 +55,10 @@ public class Startup
         });
     }
 
+    // Migration should be standalone executable extracted from webAPI
     private IDbConnection InitializeDb()
     {
+        // Connection String should be extracted to appsetings
         var connection = new SqliteConnection("Data Source=:memory:");
         connection.Open();
 

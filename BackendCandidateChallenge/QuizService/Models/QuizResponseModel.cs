@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace QuizService.Model;
+namespace Quiz.API.Models;
 
 public class QuizResponseModel
 {

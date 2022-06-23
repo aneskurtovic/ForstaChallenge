@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\QuizService\QuizService.csproj" />
+    <ProjectReference Include="..\QuizService\Quiz.API.csproj" />
   </ItemGroup>
 
 </Project>
